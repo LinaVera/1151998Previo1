@@ -4,28 +4,24 @@ function aleatorio() {
 function pyr() {
     var np = document.getElementById('np').value;//número de preguntas
     var p = document.getElementById('preguntas');//espacio para las pregutas
-    var vP = [];//vector de preguntas
-    var vR = [];//vector de respuestas
     var vRes = [];
     var t = "";
     for (var i = 0; i < np; i++) {
         var va1 = aleatorio();
         var va2 = aleatorio();
         var suma = va1 + va2;
-        vP[i] = va1 + "+" + va2;//guardó el texto de la suma
         t += "<div id='p" + i + "' class='p-3'>";
         t += "<h5>" + (i + 1) + ". " + va1 + " + " + va2 + "</h5>"
-        vR[i] = [suma, aleatorio(), aleatorio(), aleatorio()];//en la primera posición el verdadero resultado y luego genero los aleatorios
-        var rP = vR[i];//Respuetas posibles de la pregunta que estamos
-        for (var j = 0; j < 4; j++) {//imprimir respuestas
-            vRes[j] = "<div class='form-check'><label class='form-check-label'><input type='radio' class='form-check-input' name='radio" + i + "' id='r" + j + i + "'>" + rP[j] + "</label></div>";
+        vRes[0] = "<div class='form-check'><label class='form-check-label'><input type='radio' class='form-check-input' name='radio" + i + "' id='r0" + i + "'>" + suma + "</label></div>";
+        for (var j = 1; j < 4; j++) {
+            vRes[j] = "<div class='form-check'><label class='form-check-label'><input type='radio' class='form-check-input' name='radio" + i + "' id='r" + j + i + "'>" + aleatorio() + "</label></div>";
         }
         t += aleatorioLina(vRes);
         t += "</div>";
     }
     //El boton este en la parte derecha
     t += "<div class='clearfix'>";
-    t += "<input type='button' class='float-right mb-2 btn btn-primary' value='Calificar' onclick='calificar()'>";
+    t += "<input type='button' class='float-right mb-2 btn btn-primary' value='Calificar' onclick='calificar(" + np + ")'>";
     t += "</div>";
     p.innerHTML = t;
 }
@@ -39,7 +35,7 @@ function aleatorioLina(v) {
         t += v[3];
         t += v[2];
     }
-    else if (l === 1) {        
+    else if (l === 1) {
         //correcta la segunda
         t += v[3];
         t += v[0];
@@ -62,29 +58,42 @@ function aleatorioLina(v) {
     }
     return t;
 }
-function calificar() {
-    var np = document.getElementById('np').value;
+function calificar(np) {
     var nombre = document.getElementById('nombre').value;
     var cC = 0;
     var cIC = 0;
     vC = [];
     vIC = [];
+    if (validar(np) == true&& nombre.length>0) {
+        for (var i = 0; i < np; i++) {
+            if (document.getElementById('r0' + i).checked) {
+                cC++;
+            }
+            else if (document.getElementById('r1' + i).checked || document.getElementById('r2' + i).checked || document.getElementById('r3' + i).checked) {
+                cIC++;
+            }
+        }
+        vC = [cC.toString()];
+        vIC = [cIC.toString()];
+        document.getElementById("lol").style.display = "block";
+        drawChart(vC, vIC, nombre)
+        drawTable(vC, vIC, nombre);
+    } else {
+        alert("Debe llenar todos los campos");
+    }
+
+}
+function validar(np) {
+    var cont=0;
     for (var i = 0; i < np; i++) {
-        //console.log("Pregunta: " + i);
-        if (document.getElementById('r0' + i).checked) {
-            cC++;
-        }
-        else if (document.getElementById('r1' + i).checked || document.getElementById('r2' + i).checked || document.getElementById('r3' + i).checked) {
-            cIC++;
-        }
-        else {
-            alert("Debe llenar todos los datos");
+        var raGrouo = document.getElementsByName('radio' + i);
+        for (let j = 0; j < raGrouo.length; j++) {
+            if (raGrouo[j].checked === true) {
+                cont++;
+            }
         }
     }
-    vC = [cC.toString()];
-    vIC = [cIC.toString()];
-    drawChart(vC, vIC, nombre)
-    drawTable(vC, vIC, nombre);
+  return cont==np;
 }
 //***************Google chart ******************************* */
 function draw() {
@@ -113,7 +122,6 @@ function drawChart(a, v, p) {
     );
     chart.draw(data, options);
 }
-
 function drawTable(a, v) {
     var data = new google.visualization.DataTable();
     data.addColumn("string", "Respuestas correctas");
